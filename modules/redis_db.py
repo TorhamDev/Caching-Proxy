@@ -1,5 +1,3 @@
-# async_redis_cache.py
-
 import typing
 
 import redis

@@ -1,4 +1,5 @@
 import argparse
+import json
 
 import uvicorn
 from fastapi import FastAPI, Request
@@ -17,14 +18,24 @@ async def catch_all(request: Request, path: str):
     This endpoint catches all incoming requests and acts as a proxy.
     It demonstrates how to access the requested path and method.
     """
-    print("Received request:")
-    print(f"  Method: {request.method}")
-    print(f"  Path: /{path}")
-    print(f"  Headers: {request.headers}")
-    print(f"  Origin: {target_address}")
-    return {
-        "message": f"Request received for path: /{path} with method: {request.method}"
+
+    cache_key = f"{request.method}::{path}::{target_address}"
+
+    cached_data = redis.get(cache_key)
+    if cached_data:
+        return {"message": "Cache got hit."}
+
+    cache_data = {
+        "method": request.method,
+        "path": path,
+        "body": (await request.body()).decode(),
+        "headers": dict(request.headers),
+        "Origin": target_address,
     }
+
+    redis.set(key=cache_key, value=json.dumps(cache_data))
+
+    return {"message": "Not cache found. saving the result."}
 
 
 if __name__ == "__main__":

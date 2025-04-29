@@ -3,7 +3,7 @@ import argparse
 import uvicorn
 from fastapi import FastAPI, Request
 
-from redis_db import RedisDB
+from modules.redis_db import RedisDB
 
 app = FastAPI()
 redis = RedisDB()
@@ -21,7 +21,7 @@ async def catch_all(request: Request, path: str):
     print(f"  Method: {request.method}")
     print(f"  Path: /{path}")
     print(f"  Headers: {request.headers}")
-
+    print(f"  Origin: {target_address}")
     return {
         "message": f"Request received for path: /{path} with method: {request.method}"
     }
@@ -51,6 +51,9 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
+    # running wenserver
+    target_address = args.origin
     uvicorn.run(app, host="0.0.0.0", port=args.port)
 
+    # clos redis connection after program terminated
     redis.close()

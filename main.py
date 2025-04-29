@@ -5,6 +5,7 @@ import uvicorn
 from fastapi import FastAPI, Request
 
 from modules.redis_db import RedisDB
+from modules.tools import fetch_url
 
 app = FastAPI()
 redis = RedisDB()
@@ -23,7 +24,10 @@ async def catch_all(request: Request, path: str):
 
     cached_data = redis.get(cache_key)
     if cached_data:
-        return {"message": "Cache got hit."}
+        return json.loads(cached_data)["result"]
+
+    # if no cache found we request to the target address and recive the data.
+    result = await fetch_url(target_address + f"/{path}")
 
     cache_data = {
         "method": request.method,
@@ -31,11 +35,12 @@ async def catch_all(request: Request, path: str):
         "body": (await request.body()).decode(),
         "headers": dict(request.headers),
         "Origin": target_address,
+        "result": json.loads(result),
     }
 
     redis.set(key=cache_key, value=json.dumps(cache_data))
 
-    return {"message": "Not cache found. saving the result."}
+    return cache_data["result"]
 
 
 if __name__ == "__main__":

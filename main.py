@@ -1,17 +1,27 @@
 import argparse
 
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 
 app = FastAPI()
 
 
-@app.get("/")
-async def read_root():
+@app.api_route(
+    "/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"]
+)
+async def catch_all(request: Request, path: str):
     """
-    A simple root endpoint that returns a greeting.
+    This endpoint catches all incoming requests and acts as a proxy.
+    It demonstrates how to access the requested path and method.
     """
-    return {"message": "Hello, this is your basic FastAPI server!"}
+    print("Received request:")
+    print(f"  Method: {request.method}")
+    print(f"  Path: /{path}")
+    print(f"  Headers: {request.headers}")
+
+    return {
+        "message": f"Request received for path: /{path} with method: {request.method}"
+    }
 
 
 if __name__ == "__main__":

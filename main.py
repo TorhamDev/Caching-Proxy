@@ -3,7 +3,10 @@ import argparse
 import uvicorn
 from fastapi import FastAPI, Request
 
+from redis_db import RedisDB
+
 app = FastAPI()
+redis = RedisDB()
 
 
 @app.api_route(
@@ -49,3 +52,5 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     uvicorn.run(app, host="0.0.0.0", port=args.port)
+
+    redis.close()
